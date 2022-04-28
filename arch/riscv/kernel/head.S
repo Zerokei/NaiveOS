@@ -1,6 +1,9 @@
 .extern start_kernel
 .extern mm_init
 .extern _traps
+.extern setup_vm
+.extern early_pgtbl
+# .extern setup_vm_final
     .section .text.init
     .globl _start
 _start:
@@ -43,16 +46,19 @@ _start:
 relocate:
     # set ra = ra + PA2VA_OFFSET
     # set sp = sp + PA2VA_OFFSET (If you have set the sp before)
+    
+    #a0 = 0xFFFFFFDF80000000
+    li a0, 0xFFFFFFDF80000000
 
-    ###################### 
-    #   YOUR CODE HERE   #
-    ######################
+    add ra, ra, a0
+    add sp, sp, a0
 
     # set satp with early_pgtbl
-
-    ###################### 
-    #   YOUR CODE HERE   #
-    ######################
+    li a1, 0x8000000000000000
+    la a0, early_pgtbl
+    srl a0, a0, 12
+    add a0, a0, a1
+    csrw satp, a0
 
     # flush tlb
     sfence.vma zero, zero
