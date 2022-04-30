@@ -43,7 +43,7 @@ void create_mapping(uint64 *pgtbl, uint64 va, uint64 pa, uint64 sz, int perm) {
      
     uint64 vp, pp = pa;
     uint64 ed = va + sz;
-    printk("sz=%lx va=%lx, ed=%lx\n", sz, va, ed);
+    // printk("sz=%lx va=%lx, ed=%lx\n", sz, va, ed);
     for(vp = va; vp <= ed; vp += PGSIZE, pp += PGSIZE){
         int i;
         uint64* prepage;
@@ -111,8 +111,14 @@ void setup_vm_final(void) {
         : : [arg0] "r" (arg0) : "memory"
     );
 
-    // flush TLB
     asm volatile("sfence.vma zero, zero");
+    arg0 = (uint64)_stext;
+    __asm__ volatile(
+        "mv t4, %[arg0]\n"
+        "sd x0, 0(t4)\n"
+        : : [arg0] "r" (arg0) : "memory"
+    );
+    // flush TLB
     return;
 }
 
