@@ -1,9 +1,9 @@
 .extern start_kernel
 .extern mm_init
 .extern _traps
-.extern setup_vm
 .extern early_pgtbl
-# .extern setup_vm_final
+.extern setup_vm
+.extern setup_vm_final
     .section .text.init
     .globl _start
 _start:
@@ -39,6 +39,7 @@ _start:
     csrs sstatus, t0
     # init
     call mm_init
+    call setup_vm_final
     call task_init
     # call start_kernel
     call start_kernel
