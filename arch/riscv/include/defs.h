@@ -3,6 +3,14 @@
 
 #include "types.h"
 
+#define EV 1
+#define ER 2
+#define EW 4
+#define EX 8
+#define EU 16
+
+#define USER_START (0x0000000000000000) // user space start virtual address
+#define USER_END   (0x0000004000000000) // user space end virtual address
 
 #define OPENSBI_SIZE (0x200000)
 

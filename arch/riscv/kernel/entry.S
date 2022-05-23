@@ -5,7 +5,7 @@
 _traps:
     # YOUR CODE HERE
     # 1. save 32 registers and sepc to stack
-    
+
     sd x2, 16-264(sp)
     addi sp, sp, -264
     sd x0, 0(sp)
@@ -45,6 +45,8 @@ _traps:
     # 2. call trap_handler
     csrr a0, scause
     csrr a1, sepc
+    mv a2, sp # 保存pt_regs *regs
+
     call trap_handler
     # 3. restore sepc and 32 registers (x2(sp) should be restore last) from stack
     ld s1, 256(sp)
@@ -86,9 +88,15 @@ _traps:
     # -----------
 .extern dummy
     .global __dummy
+
+# .extern uapp_start
 __dummy:
-    la t0, dummy
-    csrw sepc, t0
+    csrr t0, sscratch
+    csrw sscratch, sp # 保存S-mode的sp
+    mv sp, t0 # 写入U-mode的sp
+
+    # csrw , x0
+    
     sret
 
 
@@ -109,6 +117,12 @@ __switch_to:
     sd s9, 128(a0)
     sd s10, 136(a0)
     sd s11, 144(a0)
+    csrr a2, sepc
+    sd a2, 152(a0)
+    csrr a2, sstatus
+    sd a2, 160(a0)
+    csrr a2, sscratch
+    sd a2, 168(a0)
     
     # restore state from next process
 
@@ -126,5 +140,20 @@ __switch_to:
     ld s9, 128(a1)
     ld s10, 136(a1)
     ld s11, 144(a1)
+    ld a2, 152(a1)
+    csrw sepc, a2
+    ld a2, 160(a1)
+    csrw sstatus, a2
+    ld a2, 168(a1)
+    csrw sscratch, a2
 
+    # 切换页表
+    ld a2, 176(a1)
+    li a1, 0xFFFFFFDF80000000
+    sub a2, a2, a1 #减去PA2VA_OFFSET
+    srl a2, a2, 12
+    li a1, 0x8000000000000000
+    add a2, a2, a1
+    csrw satp, a2
+    sfence.vma zero, zero
     ret

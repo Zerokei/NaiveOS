@@ -34,9 +34,12 @@ _start:
     mv a6, x0
     mv a7, x0
     ecall
-    # set sstatus[SIE] = 1
-    la t0, 0x00000002
-    csrs sstatus, t0
+
+    # 禁用 sstatus[SIE]
+    # # set sstatus[SIE] = 1
+    # la t0, 0x00000002
+    # csrs sstatus, t0
+    
     # init
     call mm_init
     call setup_vm_final

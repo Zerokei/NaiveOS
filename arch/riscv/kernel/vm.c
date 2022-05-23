@@ -5,11 +5,6 @@
 /* early_pgtbl: 用于 setup_vm 进行 1GB 的 映射。 */
 unsigned long  early_pgtbl[512] __attribute__((__aligned__(0x1000)));
 
-#define EV 1
-#define ER 2
-#define EW 4
-#define EX 8
-
 void setup_vm(void) {
     /* 
     1. 由于是进行 1GB 的映射 这里不需要使用多级页表 
@@ -31,6 +26,9 @@ void setup_vm(void) {
 
 /* 创建多级页表映射关系 */
 void create_mapping(uint64 *pgtbl, uint64 va, uint64 pa, uint64 sz, int perm) {
+    
+    printk("address=%lx %lx %lx %lx\n", pgtbl, va, pa, sz);
+
     /*
     pgtbl 为根页表的基地址
     va, pa 为需要映射的虚拟地址、物理地址
@@ -40,23 +38,19 @@ void create_mapping(uint64 *pgtbl, uint64 va, uint64 pa, uint64 sz, int perm) {
     创建多级页表的时候可以使用 kalloc() 来获取一页作为页表目录
     可以使用 V bit 来判断页表项是否存在
     */
-     
     uint64 vp, pp = pa;
     uint64 ed = va + sz;
-    // printk("sz=%lx va=%lx, ed=%lx\n", sz, va, ed);
     for(vp = va; vp <= ed; vp += PGSIZE, pp += PGSIZE){
         int i;
         uint64* prepage;
         uint64 p2,p3;
         
         i = (vp>>30)&0x1ff;
-        // printk("sz=%lx vp=%lx\n", sz, vp);
         prepage = (uint64*)pgtbl + i; 
         if((*prepage & 1) == 0){
             p2 = kalloc();
             *prepage = (((p2-PA2VA_OFFSET)>>12)<<10)|1;
         }else p2 = ((*prepage)>>10)<<12;
-        // printk("%lx->%lx\n", prepage, p2);
 
         i = (vp>>21)&0x1ff;
         prepage = (uint64*)p2 + i;
@@ -111,14 +105,16 @@ void setup_vm_final(void) {
         : : [arg0] "r" (arg0) : "memory"
     );
 
-    asm volatile("sfence.vma zero, zero");
-    arg0 = (uint64)_stext;
-    __asm__ volatile(
-        "mv t4, %[arg0]\n"
-        "sd x0, 0(t4)\n"
-        : : [arg0] "r" (arg0) : "memory"
-    );
     // flush TLB
+    asm volatile("sfence.vma zero, zero");
+    
+    // ::test auth
+    // arg0 = (uint64)_stext;
+    // __asm__ volatile(
+    //     "mv t4, %[arg0]\n"
+    //     "sd x0, 0(t4)\n"
+    //     : : [arg0] "r" (arg0) : "memory"
+    // );
     return;
 }
 
