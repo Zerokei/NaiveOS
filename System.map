@@ -7,6 +7,8 @@ ffffffe000203008 D _edata
 ffffffe000209fa0 B _ekernel
 ffffffe00020216c R _erodata
 ffffffe0002014b4 T _etext
+ffffffe0002001c8 t _go_on
+ffffffe0002000a4 t _save_context
 ffffffe000205000 B _sbss
 ffffffe000203000 D _sdata
 ffffffe000200000 T _skernel
