@@ -70,7 +70,7 @@ void dummy() {
         if (last_counter == -1 || current->counter != last_counter) {
             last_counter = current->counter;
             auto_inc_local_var = (auto_inc_local_var + 1) % MOD;
-            printk("[PID = %d] is running! thread space begin at = %lx\n", current->pid, current);
+            // printk("[PID = %d] is running! thread space begin at = %lx\n", current->pid, current);
         }
     }
 }
@@ -114,11 +114,12 @@ void schedule(void) {
         }
         if(c) break;
         for(i = 1; i < NR_TASKS; ++i){
-            task[i]->counter = rand()%3;
-            printk("SET [PID = %d COUNTER = %d]\n", task[i]->pid, task[i]->counter);
+            task[i]->counter = i; //rand()%3;
+            // printk("SET [PID = %d COUNTER = %d]\n", task[i]->pid, task[i]->counter);
         }
+        printk("\n");
     } 
-    printk("switch to [PID = %d COUNTER = %d], pc=%lx\n", next->pid, next->counter, (next->thread).sepc);
+    // printk("switch to [PID = %d COUNTER = %d], pc=%lx\n", next->pid, next->counter, (next->thread).sepc);
     switch_to(next);
 
 #endif

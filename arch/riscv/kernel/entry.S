@@ -5,11 +5,11 @@
 _traps:
     # YOUR CODE HERE
     # 1. save 32 registers and sepc to stack
-#     csrr tp, sscratch
-# 	bnez tp, _save_context
-# _save_user_sp:
-#     csrw sscratch, sp
-# 	mv sp, tp
+    csrr tp, sscratch
+	bnez tp, _save_context
+_save_user_sp:
+    csrw sscratch, sp
+	mv sp, tp
 _save_context: 
     sd x2, 16-264(sp)
     addi sp, sp, -264
@@ -48,10 +48,10 @@ _save_context:
     # 保存 sepc和sscratch
     csrr s1, sepc
     sd s1, 256(sp)
-    # csrr s1, sscratch
-    # sd s1, 264(sp)
+    csrr s1, sscratch
+    sd s1, 264(sp)
     # 2. call trap_handler
-    csrr a0, sscratch
+    csrr a0, scause
     csrr a1, sepc
     mv a2, sp # 保存pt_regs *regs
 
@@ -59,8 +59,8 @@ _save_context:
     # 3. restore sepc and 32 registers (x2(sp) should be restore last) from stack
 
     # 恢复sscratch 和 sepc
-    # ld s1, 264(sp)
-    # csrw sscratch, s1
+    ld s1, 264(sp)
+    csrw sscratch, s1
     ld s1, 256(sp)
     csrw sepc, s1
     ld x0, 0(sp)
@@ -96,11 +96,11 @@ _save_context:
     ld x31, 248(sp)
     ld x2, 16(sp)
 
-#     csrr tp, sscratch
-# 	bnez tp, _go_on
-# _restore_user_sp:
-#     csrw sscratch, sp
-# 	mv sp, tp
+    csrr tp, sscratch
+	bnez tp, _go_on
+_restore_user_sp:
+    csrw sscratch, sp
+	mv sp, tp
 _go_on:
     # 4. return from trap
     sret

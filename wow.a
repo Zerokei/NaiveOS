@@ -1,0 +1,90 @@
+diff --git a/System.map b/System.map
+index 2c81b70..8431a43 100644
+--- a/System.map
++++ b/System.map
+@@ -7,8 +7,6 @@ ffffffe000203008 D _edata
+ ffffffe000209fa0 B _ekernel
+ ffffffe00020216c R _erodata
+ ffffffe0002014b4 T _etext
+-ffffffe0002001c8 t _go_on
+-ffffffe0002000a4 t _save_context
+ ffffffe000205000 B _sbss
+ ffffffe000203000 D _sdata
+ ffffffe000200000 T _skernel
+diff --git a/arch/riscv/boot/Image b/arch/riscv/boot/Image
+index 546c458..ecf111a 100755
+Binary files a/arch/riscv/boot/Image and b/arch/riscv/boot/Image differ
+diff --git a/arch/riscv/kernel/entry.S b/arch/riscv/kernel/entry.S
+index b2823ad..c9f043e 100644
+--- a/arch/riscv/kernel/entry.S
++++ b/arch/riscv/kernel/entry.S
+@@ -5,12 +5,7 @@
+ _traps:
+     # YOUR CODE HERE
+     # 1. save 32 registers and sepc to stack
+-#     csrr tp, sscratch
+-# 	bnez tp, _save_context
+-# _save_user_sp:
+-#     csrw sscratch, sp
+-# 	mv sp, tp
+-_save_context: 
++
+     sd x2, 16-264(sp)
+     addi sp, sp, -264
+     sd x0, 0(sp)
+@@ -45,22 +40,15 @@ _save_context:
+     sd x29, 232(sp)
+     sd x30, 240(sp)
+     sd x31, 248(sp)
+-    # 保存 sepc和sscratch
+     csrr s1, sepc
+     sd s1, 256(sp)
+-    # csrr s1, sscratch
+-    # sd s1, 264(sp)
+     # 2. call trap_handler
+-    csrr a0, sscratch
++    csrr a0, scause
+     csrr a1, sepc
+     mv a2, sp # 保存pt_regs *regs
+ 
+     call trap_handler
+     # 3. restore sepc and 32 registers (x2(sp) should be restore last) from stack
+-
+-    # 恢复sscratch 和 sepc
+-    # ld s1, 264(sp)
+-    # csrw sscratch, s1
+     ld s1, 256(sp)
+     csrw sepc, s1
+     ld x0, 0(sp)
+@@ -95,13 +83,6 @@ _save_context:
+     ld x30, 240(sp)
+     ld x31, 248(sp)
+     ld x2, 16(sp)
+-
+-#     csrr tp, sscratch
+-# 	bnez tp, _go_on
+-# _restore_user_sp:
+-#     csrw sscratch, sp
+-# 	mv sp, tp
+-_go_on:
+     # 4. return from trap
+     sret
+     # -----------
+@@ -112,7 +93,10 @@ _go_on:
+ __dummy:
+     csrr t0, sscratch
+     csrw sscratch, sp # 保存S-mode的sp
+-    mv sp, t0 # 写入U-mode的sp    
++    mv sp, t0 # 写入U-mode的sp
++
++    # csrw , x0
++    
+     sret
+ 
+ 
+diff --git a/arch/riscv/kernel/entry.o b/arch/riscv/kernel/entry.o
+index 6ff16d4..cb40b91 100644
+Binary files a/arch/riscv/kernel/entry.o and b/arch/riscv/kernel/entry.o differ
+diff --git a/vmlinux b/vmlinux
+index 5085fbf..ba996e8 100755
+Binary files a/vmlinux and b/vmlinux differ
