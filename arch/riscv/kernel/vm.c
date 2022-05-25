@@ -27,7 +27,7 @@ void setup_vm(void) {
 /* 创建多级页表映射关系 */
 void create_mapping(uint64 *pgtbl, uint64 va, uint64 pa, uint64 sz, int perm) {
     
-    // printk("address=%lx %lx %lx %lx\n", pgtbl, va, pa, sz);
+    // printk("address=%lx %lx %lx %lx %lx\n", pgtbl, va, pa, sz, va+sz);
 
     /*
     pgtbl 为根页表的基地址

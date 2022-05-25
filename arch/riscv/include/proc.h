@@ -13,7 +13,29 @@
 #define PRIORITY_MIN 1
 #define PRIORITY_MAX 10
 
+#define VM_READ     0x00000001
+#define VM_WRITE    0x00000002
+#define VM_EXEC     0x00000004
+
 typedef unsigned long* pagetable_t;
+
+/* vm_area_struct vm_flags */
+
+struct vm_area_struct {
+    struct mm_struct *vm_mm;    /* The mm_struct we belong to. */
+    uint64 vm_start;          /* Our start address within vm_mm. */
+    uint64 vm_end;            /* The first byte after our end address 
+                                    within vm_mm. */
+
+    /* linked list of VM areas per task, sorted by address */
+    struct vm_area_struct *vm_next, *vm_prev;
+
+    uint64 vm_flags;      /* Flags as listed above. */
+};
+
+struct mm_struct {
+    struct vm_area_struct *mmap;       /* list of VMAs */
+};
 
 /* 用于记录 `线程` 的 `内核栈与用户栈指针` */
 /* (lab6中无需考虑，在这里引入是为了之后实验的使用) */
@@ -33,7 +55,7 @@ struct thread_struct {
 
 /* 线程数据结构 */
 struct task_struct {
-    struct thread_info* thread_info;
+    struct thread_info thread_info;
     uint64 state;    // 线程状态
     uint64 counter;  // 运行剩余时间 
     uint64 priority; // 运行优先级 1最低 10最高
@@ -42,6 +64,10 @@ struct task_struct {
     struct thread_struct thread;
 
     pagetable_t pgd;
+    
+    struct mm_struct *mm;
+
+    struct pt_regs *trapframe;
 };
 
 /* 线程初始化 创建 NR_TASKS 个线程 */ 
@@ -58,3 +84,25 @@ void switch_to(struct task_struct* next);
 
 /* dummy funciton: 一个循环程序，循环输出自己的 pid 以及一个自增的局部变量*/
 void dummy();
+
+/*
+* @mm          : current thread's mm_struct
+* @address     : the va to look up
+*
+* @return      : the VMA if found or NULL if not found
+*/
+struct vm_area_struct *find_vma(struct mm_struct *mm, uint64 addr);
+
+/*
+ * @mm     : current thread's mm_struct
+ * @addr   : the suggested va to map
+ * @length : memory size to map
+ * @prot   : protection
+ *x
+ * @return : start va
+*/
+uint64 do_mmap(struct mm_struct *mm, uint64 addr, uint64 length, int prot);
+
+uint64 get_unmapped_area(struct mm_struct *mm, uint64 length);
+
+uint64 clone(struct pt_regs *regs);

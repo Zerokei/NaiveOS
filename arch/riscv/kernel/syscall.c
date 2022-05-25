@@ -17,6 +17,9 @@ void deal_syscall(struct pt_regs* regs){
         case SYS_GETPID:
             regs->a0 = current->pid;
             break;
+        case SYS_CLONE:
+            regs->a0 = clone(regs);
+            break;
         default:
             break;
     }
