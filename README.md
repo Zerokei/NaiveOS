@@ -1,4 +1,4 @@
-# Naive OS :cat:
+# Naive OS :horse:
 
 ## About
 a naive OS kernel which only support automate processes switch. It is written in C and risc-v
